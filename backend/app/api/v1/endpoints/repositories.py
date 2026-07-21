@@ -7,7 +7,10 @@ from app.models.user import User
 from app.schemas.repository import RepositoryCreate, RepositoryResponse
 from app.services.repository_service import RepositoryService
 
-router = APIRouter(prefix="/repositories", tags=["Repositories"])
+router = APIRouter(
+    prefix="/repositories",
+    tags=["Repositories"],
+)
 
 repository_service = RepositoryService()
 
@@ -62,4 +65,35 @@ def delete_repository(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Repository not found",
+        )
+
+
+@router.post("/{repository_id}/index")
+def index_repository(
+    repository_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        count = repository_service.index_repository(
+            db,
+            repository_id,
+            current_user,
+        )
+
+        return {
+            "message": "Repository indexed successfully",
+            "chunks": count,
+        }
+
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found",
+        )
+
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized",
         )

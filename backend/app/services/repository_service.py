@@ -5,6 +5,7 @@ from app.models.user import User
 from app.repositories.repository_repository import RepositoryRepository
 from app.schemas.repository import RepositoryCreate
 from app.services.git_service import GitService
+from app.services.indexing_service import IndexingService
 
 
 class RepositoryService:
@@ -72,3 +73,24 @@ class RepositoryService:
         )
 
         return True
+
+    def index_repository(
+        self,
+        db: Session,
+        repository_id: int,
+        user: User,
+    ) -> int:
+        repository = self.repository_repository.get_by_id(
+            db,
+            repository_id,
+        )
+
+        if repository is None:
+            raise ValueError("Repository not found")
+
+        if repository.user_id != user.id:
+            raise PermissionError("Not authorized")
+
+        indexing_service = IndexingService(db)
+
+        return indexing_service.index_repository(repository)

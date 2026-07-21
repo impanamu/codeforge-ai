@@ -10,6 +10,7 @@ from app.db.base import Base
 # Import all models
 from app.models.user import User
 from app.models.repository import Repository
+from app.models.document_chunk import DocumentChunk
 
 
 config = context.config

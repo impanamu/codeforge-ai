@@ -26,3 +26,9 @@ class Repository(BaseModel):
         "User",
         back_populates="repositories",
     )
+
+    document_chunks = relationship(
+        "DocumentChunk",
+        back_populates="repository",
+        cascade="all, delete-orphan",
+    )
