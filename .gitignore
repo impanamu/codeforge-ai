@@ -22,3 +22,6 @@ __pycache__/
 # Cloned GitHub repositories
 repositories/
 backend/repositories/
+
+# API Key
+GEMINI_API_KEY= [REDACTED_GEMINI_API_KEY]
