@@ -19,13 +19,10 @@ class RepositoryService:
         repository_data: RepositoryCreate,
         user: User,
     ) -> Repository:
-        # Clone the repository using GitService
         local_path = self.git_service.clone_repository(
             repository_data.github_url,
-            repository_data.default_branch,
         )
 
-        # Create a new Repository instance
         new_repository = Repository(
             name=repository_data.name,
             github_url=repository_data.github_url,
@@ -34,7 +31,6 @@ class RepositoryService:
             user_id=user.id,
         )
 
-        # Save the new repository to the database
         return self.repository_repository.create(
             db,
             new_repository,
@@ -49,6 +45,25 @@ class RepositoryService:
             db,
             user.id,
         )
+
+    def get_repository(
+        self,
+        db: Session,
+        repository_id: int,
+        user: User,
+    ) -> Repository:
+        repository = self.repository_repository.get_by_id(
+            db,
+            repository_id,
+        )
+
+        if repository is None:
+            raise ValueError("Repository not found")
+
+        if repository.user_id != user.id:
+            raise PermissionError("Not authorized")
+
+        return repository
 
     def delete_repository(
         self,

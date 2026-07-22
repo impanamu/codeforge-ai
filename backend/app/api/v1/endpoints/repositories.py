@@ -4,7 +4,11 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.dependencies.auth import get_current_user
 from app.models.user import User
-from app.schemas.repository import RepositoryCreate, RepositoryResponse
+from app.schemas.repository import (
+    RepositoryCreate,
+    RepositoryResponse,
+    RepositoryDetailResponse,
+)
 from app.services.repository_service import RepositoryService
 
 router = APIRouter(
@@ -44,6 +48,35 @@ def get_repositories(
         db,
         current_user,
     )
+
+
+@router.get(
+    "/{repository_id}",
+    response_model=RepositoryDetailResponse,
+)
+def get_repository(
+    repository_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    try:
+        return repository_service.get_repository(
+            db,
+            repository_id,
+            current_user,
+        )
+
+    except ValueError:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Repository not found",
+        )
+
+    except PermissionError:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized",
+        )
 
 
 @router.delete(
