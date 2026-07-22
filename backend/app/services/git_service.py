@@ -11,8 +11,13 @@ class GitService:
     def clone_repository(
         self,
         github_url: str,
-        repository_name: str,
     ) -> str:
+        repository_name = (
+            github_url.rstrip("/")
+            .split("/")[-1]
+            .replace(".git", "")
+        )
+
         repo_path = self.base_path / repository_name
 
         if repo_path.exists():
