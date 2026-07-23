@@ -5,6 +5,8 @@ import RegisterPage from "@/features/auth/pages/RegisterPage";
 import DashboardPage from "@/features/dashboard/pages/DashboardPage";
 import RepositoriesPage from "@/features/repositories/pages/RepositoriesPage";
 import RepositoryDetailsPage from "@/pages/repository/RepositoryDetailsPage";
+import ChatPage from "@/features/chat/pages/ChatPage";
+
 import DashboardLayout from "@/layouts/DashboardLayout";
 
 export default function AppRouter() {
@@ -17,7 +19,10 @@ export default function AppRouter() {
         <Route path="/register" element={<RegisterPage />} />
 
         <Route element={<DashboardLayout />}>
-          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route
+            path="/dashboard"
+            element={<DashboardPage />}
+          />
 
           <Route
             path="/repositories"
@@ -27,6 +32,12 @@ export default function AppRouter() {
           <Route
             path="/repositories/:id"
             element={<RepositoryDetailsPage />}
+          />
+
+          {/* NEW */}
+          <Route
+            path="/chat"
+            element={<ChatPage />}
           />
         </Route>
 
