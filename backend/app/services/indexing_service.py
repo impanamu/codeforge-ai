@@ -1,3 +1,4 @@
+from datetime import datetime
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -6,6 +7,7 @@ from app.models.document_chunk import DocumentChunk
 from app.repositories.document_chunk_repository import (
     DocumentChunkRepository,
 )
+from app.repositories.repository_repository import RepositoryRepository
 from app.services.chunking_service import ChunkingService
 from app.services.embedding_service import EmbeddingService
 from app.services.file_service import FileService
@@ -20,11 +22,16 @@ class IndexingService:
         self.embedding_service = EmbeddingService()
 
         self.chunk_repository = DocumentChunkRepository(db)
+        self.repository_repository = RepositoryRepository(db)
 
     def index_repository(
         self,
         repository,
     ):
+        repository.status = "Indexing"
+        self.db.commit()
+        self.db.refresh(repository)
+
         files = self.file_service.get_repository_files(
             repository.local_path,
         )
@@ -72,6 +79,14 @@ class IndexingService:
         print(f"\nTotal chunks: {total_chunks}")
 
         self.chunk_repository.save_chunks(document_chunks)
+
+        repository.status = "Indexed"
+        repository.indexed_files = len(files)
+        repository.indexed_chunks = total_chunks
+        repository.last_indexed_at = datetime.utcnow()
+
+        self.db.commit()
+        self.db.refresh(repository)
 
         print(f"Saved {len(document_chunks)} chunks.")
 

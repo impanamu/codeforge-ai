@@ -1,4 +1,6 @@
-from sqlalchemy import ForeignKey, String
+from datetime import datetime
+
+from sqlalchemy import DateTime, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import BaseModel
@@ -17,6 +19,26 @@ class Repository(BaseModel):
     )
 
     local_path: Mapped[str] = mapped_column(String(500))
+
+    status: Mapped[str] = mapped_column(
+        String(50),
+        default="Not Indexed",
+    )
+
+    indexed_chunks: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+    )
+
+    indexed_files: Mapped[int] = mapped_column(
+        Integer,
+        default=0,
+    )
+
+    last_indexed_at: Mapped[datetime | None] = mapped_column(
+        DateTime,
+        nullable=True,
+    )
 
     user_id: Mapped[int] = mapped_column(
         ForeignKey("users.id"),
