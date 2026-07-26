@@ -1,17 +1,12 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config, pool
-
 from alembic import context
+from sqlalchemy import engine_from_config, pool
 
 from app.core.config import settings
 from app.db.base import Base
 
 # Import all models
-from app.models.user import User
-from app.models.repository import Repository
-from app.models.document_chunk import DocumentChunk
-
 
 config = context.config
 
