@@ -1,8 +1,7 @@
+from app.models.base import BaseModel
 from pgvector.sqlalchemy import Vector
 from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
-from app.models.base import BaseModel
 
 
 class DocumentChunk(BaseModel):
