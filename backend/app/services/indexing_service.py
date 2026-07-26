@@ -1,8 +1,6 @@
 from datetime import datetime
 from pathlib import Path
 
-from sqlalchemy.orm import Session
-
 from app.models.document_chunk import DocumentChunk
 from app.repositories.document_chunk_repository import (
     DocumentChunkRepository,
@@ -11,6 +9,7 @@ from app.repositories.repository_repository import RepositoryRepository
 from app.services.chunking_service import ChunkingService
 from app.services.embedding_service import EmbeddingService
 from app.services.file_service import FileService
+from sqlalchemy.orm import Session
 
 
 class IndexingService:
@@ -146,7 +145,7 @@ class IndexingService:
                 embeddings.extend(batch_embeddings)
 
             except Exception as e:
-                print(f"Embedding batch failed.")
+                print("Embedding batch failed.")
                 print(e)
 
         print("Embedding generation complete.")
