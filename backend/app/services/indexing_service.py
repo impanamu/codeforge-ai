@@ -22,7 +22,7 @@ class IndexingService:
         self.embedding_service = EmbeddingService()
 
         self.chunk_repository = DocumentChunkRepository(db)
-        self.repository_repository = RepositoryRepository(db)
+        self.repository_repository = RepositoryRepository()
 
     def index_repository(
         self,
