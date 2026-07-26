@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 class FileService:
-    ALLOWED_EXTENSIONS = {
+    ALLOWED_EXTENSIONS = {  # noqa: RUF012
         ".py",
         ".js",
         ".jsx",
@@ -30,7 +30,7 @@ class FileService:
         ".sh",
     }
 
-    IGNORED_DIRECTORIES = {
+    IGNORED_DIRECTORIES = {  # noqa: RUF012
         ".git",
         "node_modules",
         "__pycache__",
@@ -54,7 +54,7 @@ class FileService:
             with open(path, "rb") as f:
                 chunk = f.read(4096)
             return b"\x00" in chunk
-        except Exception:
+        except Exception:  # noqa: BLE001
             return True
 
     def get_repository_files(self, repository_path: str) -> list[Path]:
