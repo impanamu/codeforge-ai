@@ -25,3 +25,15 @@ backend/repositories/
 
 # API Key
 GEMINI_API_KEY= AQ.Ab8RN6IQ3U2RyZfxrmVc0DyOg7I0bFouqpAvavlCX9oBjKq_wA
+
+# Google: https://console.cloud.google.com/apis/credentials
+GOOGLE_CLIENT_ID=110989940761-tjbd1p9des9ai4pknvveil47ckuvrca2.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=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
+
+# GitHub: https://github.com/settings/developers → OAuth Apps
+GITHUB_CLIENT_ID=Ov23liAxRpay2FwNZf2P
+GITHUB_CLIENT_SECRET=fffefaeeed517cecc8f79b5ccd2d7fab6019d324
+
+# Frontend
+frontend/node_modules/
+frontend/dist/

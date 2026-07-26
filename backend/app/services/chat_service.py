@@ -24,6 +24,7 @@ class ChatService:
         MAX_CONTEXT_CHARS = 10000
 
         contexts = []
+        used_results = []
         current_size = 0
 
         for result in results:
@@ -37,6 +38,7 @@ Lines: {result.start_line}-{result.end_line}
                 break
 
             contexts.append(context)
+            used_results.append(result)
             current_size += len(context)
 
         prompt = self.prompt_service.build_prompt(
@@ -52,7 +54,7 @@ Lines: {result.start_line}-{result.end_line}
                 "start_line": result.start_line,
                 "end_line": result.end_line,
             }
-            for result in results
+            for result in used_results
         ]
 
         return {
