@@ -408,6 +408,6 @@ This project is licensed under the **MIT License**.
 
 ### ⭐ If you found this project useful, consider giving it a star!
 
-**Built with ❤️ using FastAPI, React, PostgreSQL, pgvector, and AI**
+**Built with using FastAPI, React, PostgreSQL, pgvector, and AI**
 
 </div>
