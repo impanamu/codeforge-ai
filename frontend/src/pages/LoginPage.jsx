@@ -55,7 +55,7 @@ const HERO_SLIDES = [
   },
   {
     icon: Zap,
-    tag: 'ChatGPT & Claude-Level UX',
+    tag: 'Real-Time AI Responses',
     title: 'Rich Markdown Responses & Code Highlights',
     description: 'Beautiful callout cards, syntax-highlighted code blocks, interactive citations, and follow-up question chips.',
     badge: 'Real-Time Streaming',
