@@ -4,14 +4,14 @@
 
 ### AI-Powered Repository Intelligence Platform
 
-Build • Index • Search • Chat with Code Using Large Language Models
+**Build • Index • Search • Chat with Code Using Large Language Models**
 
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
-![pgvector](https://img.shields.io/badge/pgvector-Vector%20DB-blueviolet?style=for-the-badge)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
-![Python](https://img.shields.io/badge/Python-3.13+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![pgvector](https://img.shields.io/badge/pgvector-Vector%20Database-blueviolet?style=for-the-badge)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 
 </div>
 
@@ -19,9 +19,9 @@ Build • Index • Search • Chat with Code Using Large Language Models
 
 # 📖 Overview
 
-CodeForge AI is an AI-powered developer platform that enables developers to understand large codebases through semantic search and natural language conversations.
+CodeForge AI is an AI-powered repository intelligence platform that helps developers understand large codebases using **semantic search**, **Retrieval-Augmented Generation (RAG)**, and **Large Language Models (LLMs)**.
 
-Instead of manually navigating thousands of lines of source code, CodeForge AI indexes repositories, generates vector embeddings, retrieves the most relevant code snippets, and uses Large Language Models (LLMs) to produce accurate, repository-aware answers.
+Instead of manually navigating thousands of lines of source code, CodeForge AI clones GitHub repositories, indexes source files, generates vector embeddings, retrieves relevant code using hybrid semantic search, and produces repository-aware answers using **Google Gemini**, with **Ollama** as a local fallback.
 
 ---
 
@@ -29,68 +29,70 @@ Instead of manually navigating thousands of lines of source code, CodeForge AI i
 
 ### 🔐 Authentication
 
-- JWT-based authentication
-- Secure password hashing
+- JWT authentication
+- Google OAuth
+- GitHub OAuth
+- Password reset
 - Protected API endpoints
-- User registration and login
 
 ### 📂 Repository Management
 
 - Connect GitHub repositories
 - Clone repositories locally
-- Repository indexing
-- Index status tracking
+- Background indexing
+- Repository status tracking
 
 ### 🧠 AI Code Intelligence
 
-- Semantic code search
 - Repository-aware AI chat
+- Hybrid semantic search
 - Intelligent code chunking
 - Vector embeddings
 - Context retrieval
 
-### ⚡ Retrieval-Augmented Generation (RAG)
+### ⚡ RAG Pipeline
 
 - Automatic repository indexing
 - Embedding generation
-- Vector similarity search
-- Context-aware LLM responses
+- pgvector similarity search
+- Context-aware AI responses
+- Gemini with Ollama fallback
 
 ---
 
-# 🏗️ Architecture
+# 🏗️ System Architecture
 
 ```mermaid
 flowchart LR
 
-A[Developer]
+User --> React
 
-A --> B[React Frontend]
+React --> FastAPI
 
-B --> C[FastAPI Backend]
+FastAPI --> Authentication
+FastAPI --> RepositoryService
+FastAPI --> SearchService
+FastAPI --> ChatService
 
-C --> D[Authentication Service]
-C --> E[Repository Service]
-C --> F[Indexing Service]
-C --> G[AI Chat Service]
+RepositoryService --> GitHub
 
-E --> H[GitHub Repository]
+GitHub --> Clone
 
-H --> I[Clone Repository]
+Clone --> Chunking
 
-I --> J[Chunking Engine]
+Chunking --> Embeddings
 
-J --> K[Embedding Generator]
+Embeddings --> PostgreSQL
 
-K --> L[(PostgreSQL + pgvector)]
+PostgreSQL --> SearchService
 
-G --> L
+SearchService --> ChatService
 
-L --> G
+ChatService --> Gemini
 
-G --> M[Gemini LLM]
+Gemini -.Fallback.-> Ollama
 
-M --> B
+ChatService --> React
 ```
 
 ---
@@ -101,30 +103,28 @@ M --> B
 flowchart TD
 
 Repository
-    --> Clone
+--> Clone
+--> Parse
+--> Chunk
+--> Embeddings
+--> PostgreSQL
 
-Clone
-    --> Parse
+Question
+--> SemanticSearch
 
-Parse
-    --> Chunk
+SemanticSearch
+--> RetrievedContext
 
-Chunk
-    --> Embeddings
+RetrievedContext
+--> Gemini
 
-Embeddings
-    --> PostgreSQL
-
-PostgreSQL
-    --> Semantic_Search
-
-Semantic_Search
-    --> AI_Response
+Gemini
+--> Response
 ```
 
 ---
 
-# 💬 Query Flow
+# 💬 AI Query Flow
 
 ```mermaid
 sequenceDiagram
@@ -133,15 +133,15 @@ User->>Frontend: Ask Question
 
 Frontend->>Backend: POST /chat
 
-Backend->>Database: Vector Search
+Backend->>Vector DB: Semantic Search
 
-Database-->>Backend: Relevant Chunks
+Vector DB-->>Backend: Relevant Code
 
-Backend->>LLM: Context + Prompt
+Backend->>Gemini/Ollama: Prompt + Context
 
-LLM-->>Backend: Answer
+Gemini/Ollama-->>Backend: AI Response
 
-Backend-->>Frontend: Response
+Backend-->>Frontend: Repository-aware Answer
 ```
 
 ---
@@ -153,8 +153,8 @@ Backend-->>Frontend: Response
 | Frontend | React, TypeScript, Vite, Tailwind CSS |
 | Backend | FastAPI, SQLAlchemy, Alembic |
 | Database | PostgreSQL, pgvector |
-| AI | Google Gemini, Sentence Transformers |
-| Authentication | JWT, bcrypt |
+| AI | Google Gemini, Ollama, Sentence Transformers |
+| Authentication | JWT, Google OAuth, GitHub OAuth |
 | DevOps | Docker, Docker Compose |
 | Version Control | Git & GitHub |
 
@@ -162,24 +162,13 @@ Backend-->>Frontend: Response
 
 # 📂 Project Structure
 
-```
-CodeForge-AI
+```text
+codeforge-ai/
 │
 ├── backend/
-│   ├── app/
-│   ├── alembic/
-│   ├── tests/
-│   └── pyproject.toml
-│
 ├── frontend/
-│   ├── src/
-│   ├── public/
-│   └── package.json
-│
 ├── docs/
-│
 ├── docker-compose.yml
-│
 └── README.md
 ```
 
@@ -187,10 +176,10 @@ CodeForge-AI
 
 # 🚀 Getting Started
 
-## Clone Repository
+## Clone
 
 ```bash
-git clone https://github.com/yourusername/codeforge-ai.git
+git clone https://github.com/impanamu/codeforge-ai.git
 
 cd codeforge-ai
 ```
@@ -222,9 +211,11 @@ JWT_ALGORITHM=HS256
 ACCESS_TOKEN_EXPIRE_MINUTES=30
 
 GEMINI_API_KEY=
+
+OLLAMA_BASE_URL=http://localhost:11434
 ```
 
-## Start Database
+## Start PostgreSQL
 
 ```bash
 docker compose up -d
@@ -254,19 +245,29 @@ npm run dev
 
 ---
 
+# 📚 Documentation
+
+Detailed technical documentation is available in the `docs` folder.
+
+- 🏗️ [Architecture & Developer Guide](docs/architecture.md)
+- 🔌 [API Reference](docs/api-reference.md)
+- 🚀 [Deployment Guide](docs/deployment.md)
+
+---
+
 # 📚 API Documentation
 
 After starting the backend:
 
-Swagger UI
+**Swagger**
 
-```
+```text
 http://localhost:8000/docs
 ```
 
-OpenAPI
+**OpenAPI**
 
-```
+```text
 http://localhost:8000/openapi.json
 ```
 
@@ -274,75 +275,50 @@ http://localhost:8000/openapi.json
 
 # ⚙️ Design Decisions
 
-| Decision | Why? |
-|----------|------|
-| FastAPI | High performance, async support, automatic API documentation |
-| PostgreSQL + pgvector | Combines relational storage with vector search in one database |
-| JWT Authentication | Stateless, scalable authentication |
-| Repository Chunking | Handles repositories larger than an LLM's context window |
-| RAG Pipeline | Provides repository-aware answers with lower hallucination rates |
-| Layered Architecture | Separates API, business logic, repositories, and database access |
+| Decision | Reason |
+|----------|--------|
+| FastAPI | High-performance asynchronous backend with automatic API documentation |
+| PostgreSQL + pgvector | Combines relational storage with efficient vector similarity search |
+| Hybrid Search | Combines semantic similarity with keyword matching for improved retrieval accuracy |
+| RAG | Grounds LLM responses in repository context to reduce hallucinations |
+| Gemini + Ollama | Cloud-based LLM with a local fallback for reliability |
+| Layered Architecture | Clear separation of API, services, repositories, and database logic |
 
 ---
 
 # 🚧 Engineering Challenges
 
-### Repository Scale
-
-Large repositories cannot fit inside an LLM context window.
-
-**Solution:** Implemented semantic chunking and vector embeddings to retrieve only relevant code.
-
----
-
-### Accurate Code Search
-
-Keyword search often misses semantically related code.
-
-**Solution:** Used embedding-based similarity search with pgvector for natural language retrieval.
-
----
-
-### Secure Access
-
-Repository data should only be available to authenticated users.
-
-**Solution:** JWT authentication with password hashing and protected endpoints.
-
----
-
-### Efficient Indexing
-
-Generating embeddings repeatedly is expensive.
-
-**Solution:** Store indexed embeddings and metadata to enable fast reuse during future queries.
+- Processing repositories larger than an LLM context window.
+- Retrieving semantically relevant code instead of relying solely on keyword matching.
+- Efficiently storing and reusing embeddings to avoid repeated indexing.
+- Supporting both cloud and local LLM providers through a fallback mechanism.
+- Maintaining clean separation between the frontend, backend, indexing pipeline, and AI services.
 
 ---
 
 # 📚 Key Learnings
 
-Building CodeForge AI provided practical experience in:
+Through this project I gained experience with:
 
-- Designing scalable REST APIs
-- JWT authentication and authorization
-- Database schema migration with Alembic
-- Vector databases and semantic search
 - Retrieval-Augmented Generation (RAG)
-- LLM integration
-- Repository indexing pipelines
+- Semantic search and vector databases
+- pgvector and embedding pipelines
+- Sentence Transformers
+- FastAPI and React integration
+- OAuth authentication
 - Docker-based development
-- Full-stack React + FastAPI development
-- Clean layered software architecture
+- Layered software architecture
+- LLM orchestration with Gemini and Ollama
 
 ---
 
 # 🔒 Security
 
 - JWT authentication
-- Password hashing (bcrypt)
-- Protected API endpoints
+- OAuth login (Google & GitHub)
+- Password hashing with bcrypt
 - Environment-based secret management
-- SQLAlchemy ORM
+- Protected API endpoints
 - Repository ownership validation
 
 ---
@@ -351,27 +327,27 @@ Building CodeForge AI provided practical experience in:
 
 ### AI
 
-- AI-powered code review
+- AI code review
 - Pull request analysis
 - Bug detection
 - Documentation generation
-- Multi-LLM support
+- Multi-agent workflows
 
 ### Platform
 
-- Incremental repository indexing
-- Background task processing
+- Incremental indexing
+- Background task queue
 - Team collaboration
 - Role-Based Access Control (RBAC)
 - Repository sharing
 
 ### DevOps
 
-- GitHub Actions CI/CD
+- CI/CD with GitHub Actions
 - Kubernetes deployment
-- Monitoring & logging
-- Automated testing pipeline
-- Production deployment
+- Monitoring and observability
+- Automated testing
+- Cloud deployment
 
 ---
 
@@ -379,11 +355,11 @@ Building CodeForge AI provided practical experience in:
 
 | Login | Dashboard |
 |-------|-----------|
-| *Add Screenshot* | *Add Screenshot* |
+| *(Coming Soon)* | *(Coming Soon)* |
 
 | Repository | AI Chat |
 |------------|---------|
-| *Add Screenshot* | *Add Screenshot* |
+| *(Coming Soon)* | *(Coming Soon)* |
 
 ---
 
@@ -391,10 +367,10 @@ Building CodeForge AI provided practical experience in:
 
 Contributions are welcome.
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Open a Pull Request
+1. Fork the repository.
+2. Create a feature branch.
+3. Commit your changes.
+4. Open a Pull Request.
 
 ---
 
@@ -406,8 +382,8 @@ This project is licensed under the **MIT License**.
 
 <div align="center">
 
-### ⭐ If you found this project useful, consider giving it a star!
+⭐ If you found this project useful, consider giving it a star!
 
-**Built with using FastAPI, React, PostgreSQL, pgvector, and AI**
+**Built with FastAPI, React, PostgreSQL, pgvector, Gemini, Ollama, and modern AI technologies.**
 
 </div>
