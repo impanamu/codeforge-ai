@@ -5,7 +5,25 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Send, Bot, User, GitFork, Trash2, Copy, Check, ChevronDown, ChevronRight, FileText, RotateCcw } from 'lucide-react';
+import {
+  Send,
+  Bot,
+  User,
+  GitFork,
+  Trash2,
+  Copy,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  FileText,
+  RotateCcw,
+  Sparkles,
+  Lightbulb,
+  AlertTriangle,
+  CheckCircle2,
+  Bookmark,
+  HelpCircle,
+} from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useRepositories, useChatRepository } from '../hooks/useQueries';
 import { useTypewriter } from '../hooks/useAnimations';
@@ -22,27 +40,62 @@ const BlinkStyle = () => (
 /* ── Language detection ──────────────────────────── */
 const detectLang = (className = '') => (className || '').replace('language-', '') || 'text';
 
-/* ── Code block — no copy button inside ─────────── */
+/* ── Code block ──────────────────────────────────── */
 const CodeBlock = ({ children, className }) => {
   const lang = detectLang(className);
   const code = String(children).replace(/\n$/, '');
   const { isDark } = useTheme();
   return (
-    <div style={{ margin: '0.55rem 0', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', padding: '0.3rem 0.8rem', background: 'var(--bg-input)', borderBottom: '1px solid var(--border-color)' }}>
-        <span style={{ fontSize: '0.7rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.07em', fontFamily: 'var(--font-mono)' }}>{lang}</span>
+    <div style={{ margin: '0.65rem 0', borderRadius: 'var(--radius-md)', overflow: 'hidden', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.35rem 0.85rem', background: 'var(--bg-input)', borderBottom: '1px solid var(--border-color)' }}>
+        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.07em', fontFamily: 'var(--font-mono)' }}>{lang}</span>
       </div>
       <SyntaxHighlighter language={lang} style={isDark ? oneDark : oneLight} PreTag="div"
-        showLineNumbers={code.split('\n').length > 4}
+        showLineNumbers={code.split('\n').length > 3}
         lineNumberStyle={{ color: 'var(--text-subtle)', fontSize: '0.68rem', minWidth: '2.2em' }}
-        customStyle={{ margin: 0, borderRadius: 0, fontSize: '0.8rem', background: isDark ? '#0a0f14' : '#f8fafc', padding: '0.8rem 1rem', lineHeight: '1.6' }}>
+        customStyle={{ margin: 0, borderRadius: 0, fontSize: '0.82rem', background: isDark ? '#080d12' : '#f8fafc', padding: '0.85rem 1rem', lineHeight: '1.6' }}>
         {code}
       </SyntaxHighlighter>
     </div>
   );
 };
 
-/* ── Single copy button ──────────────────────────── */
+/* ── Callout Card Parser for Blockquotes ──────────── */
+const CalloutBlockquote = ({ children }) => {
+  const content = React.Children.toArray(children);
+  const text = String(children);
+
+  let variant = 'default';
+  let Icon = Lightbulb;
+  let iconColor = 'var(--primary)';
+
+  if (text.includes('💡') || text.toLowerCase().includes('key idea') || text.toLowerCase().includes('tip')) {
+    variant = 'idea';
+    Icon = Lightbulb;
+    iconColor = 'var(--primary)';
+  } else if (text.includes('⚠️') || text.toLowerCase().includes('important') || text.toLowerCase().includes('warning')) {
+    variant = 'warning';
+    Icon = AlertTriangle;
+    iconColor = '#f59e0b';
+  } else if (text.includes('✅') || text.toLowerCase().includes('best practice')) {
+    variant = 'success';
+    Icon = CheckCircle2;
+    iconColor = '#10b981';
+  } else if (text.includes('📌') || text.toLowerCase().includes('summary')) {
+    variant = 'summary';
+    Icon = Bookmark;
+    iconColor = '#8b5cf6';
+  }
+
+  return (
+    <div className={`md-callout md-callout-${variant}`}>
+      <Icon size={18} style={{ color: iconColor, flexShrink: 0, marginTop: '3px' }} />
+      <div style={{ flex: 1 }}>{children}</div>
+    </div>
+  );
+};
+
+/* ── Single Top Copy button ──────────────────────────── */
 const CopyButton = ({ text }) => {
   const [copied, setCopied] = useState(false);
   return (
@@ -64,8 +117,64 @@ const SourceChip = ({ src }) => (
   </motion.div>
 );
 
+/* ── Repo-aware Follow-up Generator ─────────────── */
+const generateFollowUps = (repoName, question = '') => {
+  const repo = repoName || 'this repository';
+  const q = question.toLowerCase();
+
+  // Pick context-relevant follow-ups based on what was just asked
+  if (q.includes('auth') || q.includes('login') || q.includes('jwt') || q.includes('token')) {
+    return [
+      `How is session management handled in ${repo}?`,
+      `Show the middleware that protects routes in ${repo}`,
+      `Where are OAuth callbacks implemented in ${repo}?`,
+    ];
+  }
+  if (q.includes('database') || q.includes('model') || q.includes('schema') || q.includes('migration')) {
+    return [
+      `What are all the database models in ${repo}?`,
+      `How are migrations run in ${repo}?`,
+      `Show foreign key relationships across ${repo} models`,
+    ];
+  }
+  if (q.includes('api') || q.includes('endpoint') || q.includes('route') || q.includes('router')) {
+    return [
+      `List all REST endpoints in ${repo}`,
+      `How is request validation done in ${repo}?`,
+      `How does ${repo} handle API errors and HTTP status codes?`,
+    ];
+  }
+  if (q.includes('test') || q.includes('spec') || q.includes('coverage')) {
+    return [
+      `Where are the test files located in ${repo}?`,
+      `How do I run the test suite for ${repo}?`,
+      `What parts of ${repo} have the least test coverage?`,
+    ];
+  }
+  if (q.includes('config') || q.includes('env') || q.includes('setting') || q.includes('deploy')) {
+    return [
+      `What environment variables does ${repo} require?`,
+      `How is ${repo} configured for production vs development?`,
+      `Show the Docker or deployment setup for ${repo}`,
+    ];
+  }
+  if (q.includes('error') || q.includes('bug') || q.includes('exception') || q.includes('debug')) {
+    return [
+      `How does ${repo} handle and log errors globally?`,
+      `Where is the error boundary or exception handler in ${repo}?`,
+      `Show retry logic or fallback patterns in ${repo}`,
+    ];
+  }
+  // Default repo-specific fallbacks
+  return [
+    `What is the overall folder structure of ${repo}?`,
+    `Show a code example for the main feature of ${repo}`,
+    `What external dependencies does ${repo} use and why?`,
+  ];
+};
+
 /* ── AI Message ──────────────────────────────────── */
-const AIMessage = ({ message, isStreaming }) => {
+const AIMessage = ({ message, isStreaming, onFollowUp, repoName }) => {
   const { displayed, isDone } = useTypewriter(isStreaming ? message.text : '', 8);
   const renderText = isStreaming ? displayed : message.text;
   const [sourcesOpen, setSourcesOpen] = useState(false);
@@ -73,16 +182,18 @@ const AIMessage = ({ message, isStreaming }) => {
   const isLong = message.text.length > 1400;
 
   return (
-    <div style={{ display: 'flex', gap: '0.75rem', maxWidth: '90%', width: '100%', alignSelf: 'flex-start' }}>
+    <div style={{ display: 'flex', gap: '0.75rem', maxWidth: '92%', width: '100%', alignSelf: 'flex-start' }}>
       {/* Avatar */}
-      <div style={{ flexShrink: 0, width: '32px', height: '32px', borderRadius: '9px', background: 'linear-gradient(135deg, var(--blue-500), var(--blue-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '2px' }}>
+      <div style={{ flexShrink: 0, width: '32px', height: '32px', borderRadius: '9px', background: 'linear-gradient(135deg, var(--blue-500), var(--blue-400))', display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: '2px', boxShadow: '0 2px 8px var(--primary-glow)' }}>
         <Bot size={17} color="#fff" />
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>
-        {/* Header: label + copy button (top right) + collapse */}
+        {/* Header: label + copy button + collapse */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem', gap: '0.5rem' }}>
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>CodeForge AI</span>
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-subtle)', textTransform: 'uppercase', letterSpacing: '0.07em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <Sparkles size={12} color="var(--primary)" /> CodeForge AI
+          </span>
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
             {isLong && (
               <motion.button whileTap={{ scale: 0.93 }} onClick={() => setCollapsed(p => !p)}
@@ -91,24 +202,28 @@ const AIMessage = ({ message, isStreaming }) => {
                 {collapsed ? 'Expand' : 'Collapse'}
               </motion.button>
             )}
-            {/* ✅ Single copy button at top of AI message */}
             <CopyButton text={message.text} />
           </div>
         </div>
 
-        {/* Bubble */}
-        <div style={{ background: 'var(--msg-ai-bg)', border: '1px solid var(--border-color)', borderRadius: '0 var(--radius-lg) var(--radius-lg) var(--radius-lg)', padding: '1rem 1.2rem', boxShadow: 'var(--shadow-sm)' }}>
+        {/* Response Card */}
+        <div style={{ background: 'var(--msg-ai-bg)', border: '1px solid var(--border-color)', borderRadius: '0 var(--radius-lg) var(--radius-lg) var(--radius-lg)', padding: '1.1rem 1.3rem', boxShadow: 'var(--shadow-sm)' }}>
           <AnimatePresence initial={false}>
             {!collapsed && (
               <motion.div key="content" initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.22 }} style={{ overflow: 'hidden' }}>
                 <div className="md-body">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
                     components={{
                       code({ node, inline, className, children, ...props }) {
                         if (inline) return <code className={className} {...props}>{children}</code>;
                         return <CodeBlock className={className}>{children}</CodeBlock>;
                       },
-                    }}>
+                      blockquote({ children }) {
+                        return <CalloutBlockquote>{children}</CalloutBlockquote>;
+                      },
+                    }}
+                  >
                     {renderText}
                   </ReactMarkdown>
                   {isStreaming && !isDone && <span className="tw-cursor" />}
@@ -119,13 +234,13 @@ const AIMessage = ({ message, isStreaming }) => {
           {collapsed && <div style={{ fontSize: '0.85rem', color: 'var(--text-subtle)', fontStyle: 'italic' }}>Response collapsed — click Expand above to read.</div>}
         </div>
 
-        {/* Sources */}
+        {/* Source File References */}
         {message.sources?.length > 0 && (
           <div style={{ marginTop: '0.6rem' }}>
             <button onClick={() => setSourcesOpen(p => !p)}
               style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: 'none', border: 'none', color: 'var(--primary)', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', padding: '0 0.1rem', marginBottom: '0.45rem' }}>
               {sourcesOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              {message.sources.length} source {message.sources.length === 1 ? 'file' : 'files'}
+              {message.sources.length} source {message.sources.length === 1 ? 'file' : 'files'} referenced
             </button>
             <AnimatePresence>
               {sourcesOpen && (
@@ -137,6 +252,24 @@ const AIMessage = ({ message, isStreaming }) => {
             </AnimatePresence>
           </div>
         )}
+
+        {/* Smart Follow-up Chips — generated from repo name + question context */}
+        {(!isStreaming || isDone) && message.id !== 'welcome' && (
+          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+            style={{ marginTop: '0.75rem', display: 'flex', gap: '0.45rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--text-subtle)', display: 'flex', alignItems: 'center', gap: '4px', flexShrink: 0 }}>
+              <HelpCircle size={12} color="var(--primary)" /> Follow-up:
+            </span>
+            {generateFollowUps(repoName, message.question || '').map((q, idx) => (
+              <motion.button key={idx} whileHover={{ scale: 1.03, borderColor: 'var(--primary)', background: 'var(--bg-card-hover)' }} whileTap={{ scale: 0.96 }}
+                onClick={() => onFollowUp && onFollowUp(q)}
+                style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: '16px', padding: '0.25rem 0.65rem', fontSize: '0.75rem', color: 'var(--blue-700)', cursor: 'pointer', fontFamily: 'var(--font-sans)', fontWeight: 500 }}>
+                {q}
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
+
         <div style={{ fontSize: '0.67rem', color: 'var(--text-subtle)', marginTop: '0.4rem' }}>
           {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
         </div>
@@ -198,7 +331,7 @@ const THINKING_STAGES = ['Searching repository AST…', 'Analyzing vector chunks
 const STORAGE_KEY = 'cf-chat-history';
 const WELCOME_MSG = {
   id: 'welcome', sender: 'assistant', sources: [], timestamp: new Date(),
-  text: "Hello! I'm your **AI Code Assistant**.\n\nAsk me anything about your indexed codebase — architecture, functions, authentication flows, database schemas, and more.\n\n> 💡 **Tip:** Select a repository above, then try one of the suggested questions below.",
+  text: "Hello! I'm your **AI Code Assistant**.\n\nAsk me anything about your indexed codebase — architecture, functions, authentication flows, database schemas, and more.\n\n> 💡 **Key Idea:** Select a repository above, then ask a question or try one of the suggested chips below.",
 };
 
 /* ── Main ChatPage ───────────────────────────────── */
@@ -262,7 +395,7 @@ export const ChatPage = () => {
     try {
       const res = await chatMutation.mutateAsync({ repositoryId: Number(selectedRepositoryId), question: q });
       const botId = `a-${Date.now()}`;
-      setMessages(prev => [...prev, { id: botId, sender: 'assistant', text: res.answer, sources: res.sources || [], timestamp: new Date() }]);
+      setMessages(prev => [...prev, { id: botId, sender: 'assistant', text: res.answer, sources: res.sources || [], timestamp: new Date(), question: q }]);
       setStreamingMsgId(botId);
       setTimeout(() => setStreamingMsgId(null), res.answer.length * 9 + 600);
     } catch (err) {
@@ -273,7 +406,7 @@ export const ChatPage = () => {
   }, [question, selectedRepositoryId, chatMutation, toast]);
 
   return (
-    <>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} style={{ width: '100%' }}>
       <BlinkStyle />
       <div style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 128px)', gap: '0.8rem' }}>
 
@@ -301,13 +434,15 @@ export const ChatPage = () => {
           </div>
         </div>
 
-        {/* Messages */}
-        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.1rem', padding: '1.1rem', background: 'var(--chat-stream-bg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
+        {/* Messages Container */}
+        <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.2rem', padding: '1.2rem', background: 'var(--chat-stream-bg)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
           <AnimatePresence initial={false}>
             {messages.map(msg => (
               <motion.div key={msg.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}
                 style={{ display: 'flex', width: '100%' }}>
-                {msg.sender === 'user' ? <UserMessage message={msg} /> : <AIMessage message={msg} isStreaming={streamingMsgId === msg.id} />}
+                {msg.sender === 'user'
+                  ? <UserMessage message={msg} />
+                  : <AIMessage message={msg} isStreaming={streamingMsgId === msg.id} onFollowUp={(q) => handleSend(null, q)} repoName={activeRepo?.name} />}
               </motion.div>
             ))}
           </AnimatePresence>
@@ -321,7 +456,7 @@ export const ChatPage = () => {
           <div ref={chatEndRef} />
         </div>
 
-        {/* Suggestion chips */}
+        {/* Initial Suggestion Chips */}
         <AnimatePresence>
           {!chatMutation.isPending && selectedRepositoryId && messages.length <= 2 && (
             <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}
@@ -337,7 +472,7 @@ export const ChatPage = () => {
           )}
         </AnimatePresence>
 
-        {/* Input */}
+        {/* Input Bar */}
         <div style={{ display: 'flex', gap: '0.65rem', flexShrink: 0 }}>
           <input ref={inputRef} type="text" className="form-input"
             placeholder={chatMutation.isPending ? 'AI is thinking…' : selectedRepositoryId ? `Ask about ${activeRepo?.name || 'the codebase'}… (Ctrl+/)` : 'Select a repository first…'}
@@ -359,6 +494,6 @@ export const ChatPage = () => {
           <kbd>Ctrl+/</kbd> focus &nbsp;·&nbsp; <kbd>Enter</kbd> send &nbsp;·&nbsp; <kbd>Esc</kbd> blur
         </div>
       </div>
-    </>
+    </motion.div>
   );
 };

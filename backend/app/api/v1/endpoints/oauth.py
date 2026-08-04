@@ -105,7 +105,7 @@ def google_callback(code: str = None, error: str = None, db: Session = Depends(g
         raise HTTPException(400, "Google did not return an email address.")
 
     user = _get_or_create_user(db, email=email, full_name=info.get("name", ""))
-    jwt = create_access_token(subject=str(user.id))
+    jwt = create_access_token(subject=user.email)
     return _make_frontend_redirect(jwt)
 
 
@@ -180,5 +180,5 @@ def github_callback(code: str = None, error: str = None, db: Session = Depends(g
 
     full_name = user_data.get("name") or user_data.get("login", "")
     user = _get_or_create_user(db, email=email, full_name=full_name)
-    jwt = create_access_token(subject=str(user.id))
+    jwt = create_access_token(subject=user.email)
     return _make_frontend_redirect(jwt)

@@ -33,11 +33,13 @@ def search_repository(
     return SearchResponse(
         results=[
             SearchResult(
-                file_path=chunk.file_path,
-                start_line=chunk.start_line,
-                end_line=chunk.end_line,
-                content=chunk.content,
+                file_path=item.file_path,
+                start_line=item.start_line,
+                end_line=item.end_line,
+                content=item.content,
+                score=item.score,
+                highlights=item.highlights,
             )
-            for chunk in chunks
+            for item in chunks
         ]
     )

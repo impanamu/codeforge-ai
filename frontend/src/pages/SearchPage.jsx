@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Search, FileCode, GitFork, Copy, Check, Code2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Search, FileCode, GitFork, Copy, Check, Code2, Sparkles, Tag } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { oneLight, oneDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useRepositories, useSearchRepository } from '../hooks/useQueries';
@@ -45,12 +44,15 @@ export const SearchPage = () => {
       return;
     }
     try {
-      const data = await searchMutation.mutateAsync({ repositoryId: Number(selectedRepositoryId), question: question.trim() });
+      const data = await searchMutation.mutateAsync({
+        repositoryId: Number(selectedRepositoryId),
+        question: question.trim(),
+      });
       setSearchResults(data.results || []);
       if ((data.results || []).length > 0) {
-        toast.info(`Found ${data.results.length} matching result${data.results.length > 1 ? 's' : ''}.`);
+        toast.info(`Found ${data.results.length} relevant code chunk${data.results.length > 1 ? 's' : ''}.`);
       } else {
-        toast.warning('No code chunks matched your query. Try re-indexing or rephrasing.');
+        toast.warning('No matching code chunks found for your query. Try rephrasing or indexing.');
       }
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Search query failed.', 'Search Error');
@@ -65,12 +67,12 @@ export const SearchPage = () => {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
       {/* Header */}
       <div>
-        <h2 style={{ fontSize: '1.5rem', color: 'var(--blue-600)' }}>Semantic Code Search</h2>
+        <h2 style={{ fontSize: '1.5rem', color: 'var(--blue-700)', fontWeight: 700 }}>Semantic & Hybrid Code Search</h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
-          Locate precise functions, classes, and logic across your indexed codebase.
+          Instantly discover relevant functions, classes, and logic across your indexed repository with exact keyword & vector precision.
         </p>
       </div>
 
@@ -80,8 +82,15 @@ export const SearchPage = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem' }}>
             <GitFork size={16} color="var(--primary)" />
             <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 500 }}>Repository:</span>
-            <select value={selectedRepositoryId || ''} onChange={e => selectRepo(e.target.value ? Number(e.target.value) : null)}
-              style={{ background: 'var(--bg-input)', border: '1px solid var(--border-color)', color: 'var(--blue-600)', padding: '0.38rem 0.75rem', borderRadius: '6px', fontSize: '0.85rem', outline: 'none', fontWeight: 600 }}>
+            <select
+              value={selectedRepositoryId || ''}
+              onChange={e => selectRepo(e.target.value ? Number(e.target.value) : null)}
+              style={{
+                background: 'var(--bg-input)', border: '1px solid var(--border-color)',
+                color: 'var(--blue-700)', padding: '0.38rem 0.75rem', borderRadius: '6px',
+                fontSize: '0.85rem', outline: 'none', fontWeight: 600,
+              }}
+            >
               <option value="">Select repository…</option>
               {repositories.map(r => <option key={r.id} value={r.id}>{r.name} ({r.indexed_chunks || 0} chunks)</option>)}
             </select>
@@ -97,92 +106,154 @@ export const SearchPage = () => {
           <div style={{ flex: 1 }}>
             <Input
               placeholder={selectedRepositoryId
-                ? 'e.g. Where is user authentication handled? or Find the database session manager'
-                : 'Select a repository to begin searching…'}
-              icon={Search} value={question}
+                ? 'Search e.g. "Where is user authentication handled?" or "Find JWT token creation"'
+                : 'Select a repository above to start searching…'}
+              icon={Search}
+              value={question}
               onChange={e => setQuestion(e.target.value)}
               disabled={!selectedRepositoryId || searchMutation.isPending}
             />
           </div>
-          <Button type="submit" variant="primary" icon={Search}
+          <Button
+            type="submit"
+            variant="primary"
+            icon={Search}
             disabled={!selectedRepositoryId || !question.trim() || searchMutation.isPending}
-            isLoading={searchMutation.isPending}>
+            isLoading={searchMutation.isPending}
+          >
             Search
           </Button>
         </form>
       </Card>
 
-      {/* Results */}
+      {/* Results Section */}
       {searchMutation.isPending ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <Skeleton height="160px" borderRadius="12px" />
-          <Skeleton height="160px" borderRadius="12px" />
-          <Skeleton height="160px" borderRadius="12px" />
+          <Skeleton height="180px" borderRadius="12px" />
+          <Skeleton height="180px" borderRadius="12px" />
+          <Skeleton height="180px" borderRadius="12px" />
         </div>
       ) : searchResults === null ? (
-        <EmptyState icon={Search} title="Search Your Codebase"
-          description="Type a question or query above to find matching file paths and syntax-highlighted code snippets." />
+        <EmptyState
+          icon={Search}
+          title="Search Your Codebase"
+          description="Type a question or query above to find matching file paths, line ranges, and syntax-highlighted code snippets ranked by relevance."
+        />
       ) : searchResults.length === 0 ? (
-        <EmptyState icon={Code2} title="No Results Found"
-          description="No code chunks matched your query. Try rephrasing or re-index the repository." />
+        <EmptyState
+          icon={Code2}
+          title="No Results Found"
+          description="No code chunks matched your query threshold. Try rephrasing your search or trigger repository re-indexing."
+        />
       ) : (
-        <motion.div initial="hidden" animate="show"
+        <motion.div
+          initial="hidden"
+          animate="show"
           variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07 } } }}
-          style={{ display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
-
-          <div style={{ fontSize: '0.88rem', color: 'var(--blue-500)', fontWeight: 600 }}>
-            {searchResults.length} result{searchResults.length > 1 ? 's' : ''} found
+          style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', width: '100%' }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontSize: '0.88rem', color: 'var(--blue-700)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Sparkles size={15} color="var(--primary)" />
+              {searchResults.length} relevant match{searchResults.length > 1 ? 'es' : ''} found
+            </div>
           </div>
 
           {searchResults.map((result, idx) => {
             const lang = detectLanguage(result.file_path);
             const fileName = result.file_path.split('/').pop();
             const copied = copiedIdx === idx;
+            const score = result.score || 0;
+
+            // Score badge variant & label
+            let scoreVariant = 'warning';
+            let scoreIcon = '🔍';
+            if (score >= 75) {
+              scoreVariant = 'success';
+              scoreIcon = '🎯';
+            } else if (score >= 50) {
+              scoreVariant = 'info';
+              scoreIcon = '⚡';
+            }
 
             return (
-              <motion.div key={idx} variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}>
-                <Card style={{ padding: 0, overflow: 'hidden' }}>
-                  {/* File header */}
-                  <div style={{
-                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                    padding: '0.65rem 1rem',
-                    background: 'var(--blue-50)', borderBottom: '1px solid var(--border-color)',
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <FileCode size={16} color="var(--primary)" />
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', fontWeight: 700, color: 'var(--blue-600)' }}>
-                        {fileName}
-                      </span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--text-subtle)', fontFamily: 'var(--font-mono)' }}>
+              <motion.div
+                key={idx}
+                variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }}
+                style={{ width: '100%' }}
+              >
+                <div className="search-result-card">
+                  {/* File Header */}
+                  <div className="search-result-header">
+                    <div className="search-result-path-box">
+                      <FileCode size={16} color="var(--primary)" style={{ flexShrink: 0 }} />
+                      <span className="search-result-filename">{fileName}</span>
+                      <span className="search-result-filepath" title={result.file_path}>
                         {result.file_path}
                       </span>
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                      <span style={{ fontSize: '0.73rem', fontWeight: 700, color: 'var(--blue-500)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono)' }}>
+
+                    <div className="search-result-meta">
+                      {/* Relevance Score Badge */}
+                      <Badge variant={scoreVariant}>
+                        {scoreIcon} {score}% Match
+                      </Badge>
+
+                      {/* Language & Line Range */}
+                      <span style={{ fontSize: '0.73rem', fontWeight: 700, color: 'var(--blue-600)', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-mono)' }}>
                         {lang}
                       </span>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--blue-500)', background: 'rgba(76,159,206,0.12)', border: '1px solid var(--blue-200)', padding: '0.15rem 0.5rem', borderRadius: '4px', fontFamily: 'var(--font-mono)' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--blue-700)', background: 'var(--primary-light)', border: '1px solid var(--border-color)', padding: '0.15rem 0.55rem', borderRadius: '4px', fontFamily: 'var(--font-mono)', fontWeight: 600 }}>
                         L{result.start_line}–{result.end_line}
                       </span>
-                      <motion.button whileTap={{ scale: 0.93 }} onClick={() => handleCopy(result.content, idx)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '4px', background: copied ? 'rgba(16,185,129,0.1)' : 'var(--bg-card)', border: `1px solid ${copied ? 'rgba(16,185,129,0.35)' : 'var(--border-color)'}`, color: copied ? '#059669' : 'var(--text-muted)', padding: '0.2rem 0.55rem', borderRadius: '5px', fontSize: '0.73rem', cursor: 'pointer', transition: 'var(--transition-fast)', fontWeight: 500 }}>
-                        {copied ? <Check size={12} /> : <Copy size={12} />}
+
+                      {/* Copy Snippet Button */}
+                      <motion.button
+                        whileTap={{ scale: 0.93 }}
+                        onClick={() => handleCopy(result.content, idx)}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: '4px',
+                          background: copied ? 'rgba(16,185,129,0.1)' : 'var(--bg-card)',
+                          border: `1px solid ${copied ? 'rgba(16,185,129,0.35)' : 'var(--border-color)'}`,
+                          color: copied ? '#059669' : 'var(--text-muted)',
+                          padding: '0.22rem 0.6rem', borderRadius: '5px',
+                          fontSize: '0.75rem', cursor: 'pointer',
+                          transition: 'var(--transition-fast)', fontWeight: 600,
+                        }}
+                      >
+                        {copied ? <Check size={13} /> : <Copy size={13} />}
                         {copied ? 'Copied!' : 'Copy'}
                       </motion.button>
                     </div>
                   </div>
 
-                  {/* Syntax-highlighted code */}
-                  <SyntaxHighlighter
-                    language={lang} style={syntaxTheme}
-                    showLineNumbers
-                    startingLineNumber={result.start_line || 1}
-                    lineNumberStyle={{ color: isDark ? '#4a5568' : '#9ab', fontSize: '0.72rem', minWidth: '2.8em', userSelect: 'none' }}
-                    customStyle={{ margin: 0, borderRadius: 0, fontSize: '0.82rem', lineHeight: '1.65', maxHeight: '420px', overflow: 'auto' }}
-                  >
-                    {result.content}
-                  </SyntaxHighlighter>
-                </Card>
+                  {/* Matched Keywords / Highlights Row */}
+                  {result.highlights && result.highlights.length > 0 && (
+                    <div className="search-highlights-row">
+                      <Tag size={12} color="var(--primary)" style={{ flexShrink: 0 }} />
+                      <span style={{ fontWeight: 600, color: 'var(--text-muted)' }}>Matched Concepts:</span>
+                      {result.highlights.map((term, i) => (
+                        <span key={i} className="search-highlight-badge">
+                          {term}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Code Snippet Container */}
+                  <div className="search-code-wrapper">
+                    <SyntaxHighlighter
+                      language={lang}
+                      style={syntaxTheme}
+                      showLineNumbers
+                      startingLineNumber={result.start_line || 1}
+                      lineNumberStyle={{ color: isDark ? '#4a5568' : '#94a3b8', fontSize: '0.74rem', minWidth: '2.8em', userSelect: 'none' }}
+                      customStyle={{ margin: 0, borderRadius: 0, fontSize: '0.83rem', lineHeight: '1.65' }}
+                    >
+                      {result.content}
+                    </SyntaxHighlighter>
+                  </div>
+                </div>
               </motion.div>
             );
           })}
