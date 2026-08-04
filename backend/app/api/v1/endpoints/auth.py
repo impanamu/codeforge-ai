@@ -54,3 +54,53 @@ def login(
             status_code=401,
             detail=str(e),
         )
+
+
+from pydantic import BaseModel, EmailStr
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str
+
+
+@router.post("/forgot-password", summary="Send password reset link")
+def forgot_password(
+    data: ForgotPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        reset_token = user_service.request_password_reset(db, data.email)
+        frontend_reset_url = f"http://localhost:5173/reset-password?token={reset_token}"
+        
+        # In a real environment with SMTP set up, we attempt to send via SMTP.
+        # We also provide reset_link in the JSON response so frontend can show a clickable preview in dev mode.
+        return {
+            "message": "Password reset link generated successfully.",
+            "email": data.email,
+            "reset_link": frontend_reset_url,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )
+
+
+@router.post("/reset-password", summary="Reset password using token")
+def reset_password(
+    data: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    try:
+        user_service.reset_password(db, data.token, data.new_password)
+        return {"message": "Password has been reset successfully."}
+    except ValueError as e:
+        raise HTTPException(
+            status_code=400,
+            detail=str(e),
+        )

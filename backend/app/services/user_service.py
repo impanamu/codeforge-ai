@@ -62,3 +62,37 @@ class UserService:
         return create_access_token(
             subject=user.email,
         )
+
+    def request_password_reset(
+        self,
+        db: Session,
+        email: str,
+    ) -> str:
+        user = self.repository.get_by_email(db, email)
+        if not user:
+            # We still return a valid token for dev mode / security consistency
+            return create_access_token(subject=email, expires_minutes=15)
+        
+        return create_access_token(subject=user.email, expires_minutes=15)
+
+    def reset_password(
+        self,
+        db: Session,
+        token: str,
+        new_password: str,
+    ) -> bool:
+        from app.core.jwt import decode_access_token
+        payload = decode_access_token(token)
+        email = payload.get("sub")
+        if not email:
+            raise ValueError("Invalid or expired reset token.")
+
+        user = self.repository.get_by_email(db, email)
+        if not user:
+            raise ValueError("User not found.")
+
+        user.password_hash = hash_password(new_password)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+        return True
